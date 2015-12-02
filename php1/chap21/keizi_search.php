@@ -38,7 +38,32 @@ if($se_d<>""){
     ON
     tbj1.guru=tbj0.guru
     where tbj1.mess like "%$se_d%"
-    eot2;
+eot2;
 
-
+    $re=mysql_query($str);
+    while($kekka=mysql_fetch_array($re)){
+        print "$kekka[0]: $kekka[1]: $kekka[2]($kekka[3])";
+        print "<br><br>";
+    }
 }
+
+mysql_close($s);
+
+print <<<eot3
+<hr>
+メッセージに含まれる文字を入力してください！
+<br>
+<form method="GET" action="keizi_search.php">
+検索する文字列
+<input type="text" name="se">
+<br>
+<input type="submit" value="検索">
+    </form>>
+    <br>
+    <A HREF="keizi_top.php">
+    スレッド一覧に戻る
+    </A>
+    </body>
+    </html>
+eot3;
+?>
