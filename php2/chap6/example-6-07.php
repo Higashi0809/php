@@ -1,6 +1,8 @@
+<?php
 // Logic to do the right thing based on 
 // the hidden _submit_check parameter
-if ($_POST['_submit_check']) {
+//$_POSTに「submit_check」があればサブミットされたと判断する
+if (array_key_exists('_submit_check',$_POST)) {
     process_form();
 } else {
     show_form();

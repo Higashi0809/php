@@ -1,9 +1,13 @@
+<?php
 // Logic to do the right thing based on 
 // the hidden _submit_check parameter
-if ($_POST['_submit_check']) {
+if (array_key_exists('_submit_check', $_POST)) {
+    //入力値の検証
     if (validate_form()) {
+        //入力値が正しければ処理に進む
         process_form();
     } else {
+        //入力値に誤りがあればフォームを表示
         show_form();
     }
 } else {
@@ -18,7 +22,7 @@ function process_form() {
 // Display the form
 function show_form() {
     print<<<_HTML_
-<form method="POST" action="$_SERVER[PHP_SELF]">
+<form method="POST" action="{$_SERVER['SCRIPT_NAME']}">
 Your name: <input type="text" name="my_name">
 <br/>
 <input type="submit" value="Say Hello">
@@ -30,9 +34,11 @@ _HTML_;
 // Check the form data
 function validate_form() {
     // Is my_name at least 3 characters long?
-    if (strlen($_POST['my_name']) < 3) {
+    //名前が3文字より少なかったらエラーとする
+    if (mb_strlen($_POST['my_name']) < 3) {
         return false;
     } else {
         return true;
     }
 }
+?>

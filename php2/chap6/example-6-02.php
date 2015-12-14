@@ -1,3 +1,5 @@
+<?php
+
 <form method="POST" action="catalog.php">
 <input type="text" name="product_id">
 <select name="category">
