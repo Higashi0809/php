@@ -1,8 +1,13 @@
 <meta charset=UTF-8>
 <?PHP
 
-$sweets = array('Sesame Seed Puff','Coconut Milk Gelatin Square',
-                 'Brown Sugar Cake','Sweet Rice and Meat');
+//$sweets = array('Sesame Seed Puff','Coconut Milk Gelatin Square',
+  //               'Brown Sugar Cake','Sweet Rice and Meat');
+
+$sweets = array('puff' => 'Sesame Seed Puff',
+                'square' => 'Coconut Milk Gelatin Square',
+                'cake' => 'Brown Sugar Cake',
+                'ricemeat' => 'Sweet Rice and Meat');
 
 // Logic to do the right thing based on 
 // the hidden _submit_check parameter
@@ -34,11 +39,32 @@ function process_form() {
     print "日付は、 {$_POST['yr']}年{$_POST['mo']}月{$_POST['dy']}日ですね";
     print '<br>';
     print "メールアドレスは、 {$_POST['my_mail']}ですね";
+    print '<br>';
+ //   print "注文は、{$_POST['order']}ですね";
+    print "注文は、 {$GLOBALS['sweets'][$_POST['order']]}ですね";
 }
 
 
 // Display the form
 function show_form($errors = '') {
+
+    //サブミットされたかを確認
+if (array_key_exists('_submit_check',$_POST)) {
+    //サブミットされた時は$_POSTの鍵を$defaultsに保存
+    $defaults = $_POST;
+} else {
+    //サブミットされていない時は$defaultsに初期値をリセット
+    $defaults = array('my_name'  => '',
+                      'my_age'      => '',
+                      'my_height' => '',
+                      'yr'     => '',
+                      'mo' => '',
+                      'dy' => '',
+                      'my_mail' => '',
+                      'order' => 'Puff'
+                      );
+}
+
     // If some errors were passed in, print them out
     if ($errors) {
         print 'Please correct these errors: <ul><li>';
@@ -49,18 +75,28 @@ function show_form($errors = '') {
     print<<<_HTML_
 <form method="POST" action="{$_SERVER['SCRIPT_NAME']}">
 <table>
-<tr><td>Your name: </td><td><input type="text" name="my_name"></td></tr>
-    <tr><td>年齢: </td><td><input type="text" name="my_age" size="2"></td></tr>
-    <tr><td>身長: </td><td><input type="text" name="my_height" size="5"></td></tr>
-<tr><td>日付: </td><td><input type="text" name="yr" size="4">年<input type="text" name="mo" size="2">月<input type="text" name="dy" size="2">日</td></tr>
-<tr><td>メール: </td><td><input type="text" name="my_mail"></td></tr>
+<tr><td>Your name: </td><td><input type="text" name="my_name" value="{$defaults['my_name']}"></td></tr>
+    <tr><td>年齢: </td><td><input type="text" name="my_age" size="2" value="{$defaults['my_age']}"></td></tr>
+    <tr><td>身長: </td><td><input type="text" name="my_height" size="5" value="{$defaults['my_height']}"></td></tr>
+<tr><td>日付: </td><td><input type="text" name="yr" size="4" value="{$defaults['yr']}">年<input type="text" name="mo" size="2" value="{$defaults['mo']}">月<input type="text" name="dy" size="2" value="{$defaults['dy']}">日</td></tr>
+<tr><td>メール: </td><td><input type="text" name="my_mail" value="{$defaults['my_mail']}"></td></tr>
 
-    <tr><td>Your Order:</td><td><select name="order">
+    <tr><td>Your Order:</td><td><select name="order" value="{$defaults['order']}">
 
 _HTML_;
-foreach ($GLOBALS['sweets'] as $choice) {
-    print "<option>$choice</option>\n";
+//foreach ($GLOBALS['sweets'] as $choice) {
+//    print "<option>$choice</option>\n";
+//}
+
+foreach ($GLOBALS['sweets'] as $val => $choice) {
+    //print "<option value=\"$val\">$choice</option>\n";
+        print '<option value="' .$val .'"';
+    if ($val == $defaults['order']) {
+        print ' selected="selected"';
+    }
+    print "> $choice</option>\n";
 }
+
 print<<<_HTML_
     </select></td></tr>
 
@@ -124,6 +160,12 @@ function validate_form() {
     //メールアドレスのチェック
     if(! preg_match('/^[^@\s]+@([-a-z0-9]+\.)+[a-z]{2,}$/i', $_POST['my_mail'])){
         $errors[] = '正しいメールアドレスを入力して下さい';
+    }
+
+    //正しい注文を選択しているかチェック
+    //if(!in_array($_POST['order'],$GLOBALS['sweets'])){
+    if(!array_key_exists($_POST['order'], $GLOBALS['sweets'])){
+        $errors[] = '注文を正しく選択して下さい';
     }
     // Return the (possibly empty) array of error messages
     return $errors;

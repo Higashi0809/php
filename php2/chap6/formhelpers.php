@@ -48,7 +48,8 @@ function input_select($element_name, $selected, $options, $multiple = false) {
     // print out the <option> tags
     foreach ($options as $option => $label) {
         print '<option value="' . htmlentities($option) . '"';
-        if ($selected_options[$option]) {
+        //if ($selected_options[$option]) {
+        if(array_key_exists($option, $selected_options)){
             print ' selected="selected"';
         }
         print '>' . htmlentities($label) . '</option>';
