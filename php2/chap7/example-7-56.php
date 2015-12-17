@@ -1,19 +1,22 @@
 <?php
 
-// Load PEAR DB
-require 'DB.php';
 // Load the form helper functions.
-require 'formhelpers.php';
+require '../chap6/formhelpers.php';
 
-// Connect to the database
-$db = DB::connect('mysql://hunter:w)mp3s@db.example.com/restaurant');
-if (DB::isError($db)) { die ("Can't connect: " . $db->getMessage()); }
+require 'MDB2.php';
+$db = MDB2::connect('mysql://kakazu:1234@localhost/restaurant');
+if (MDB2::isError($db)) { die("connection error: " . $db->getMessage()); }
+
+// この後のデータベースエラーに関してはメッセージを出力して抜け出す
+$db->setErrorHandling(PEAR_ERROR_DIE);
+
+if (MDB2::isError($db)) { die ("Can't connect: " . $db->getMessage()); }
 
 // Set up automatic error handling
 $db->setErrorHandling(PEAR_ERROR_DIE);
 
 // Set up fetch mode: rows as objects
-$db->setFetchMode(DB_FETCHMODE_OBJECT);
+$db->setFetchMode(MDB2_FETCHMODE_OBJECT);
 
 // Choices for the "spicy" menu in the form
 $spicy_choices = array('no','yes','either');
@@ -21,7 +24,7 @@ $spicy_choices = array('no','yes','either');
 // The main page logic:
 // - If the form is submitted, validate and then process or redisplay
 // - If it's not submitted, display
-if ($_POST['_submit_check']) {
+if (array_key_exists('_submit_check', $_POST)) {
     // If validate_form() returns errors, pass them to show_form()
     if ($form_errors = validate_form()) {
         show_form($form_errors);
@@ -36,12 +39,16 @@ if ($_POST['_submit_check']) {
 
 function show_form($errors = '') {
     // If the form is submitted, get defaults from submitted parameters
-    if ($_POST['_submit_check']) {
+    if (array_key_exists('_submit_check', $_POST)) {
         $defaults = $_POST;
     } else {
         // Otherwise, set our own defaults
-        $defaults = array('min_price' => '5.00',
-                          'max_price' => '25.00');
+        $defaults = array(
+                            'dish_name' => '',
+                            'min_price' => '5.00',
+                            'max_price' => '25.00',
+                            'is_spicy' => 'no',
+                            );
     }
     
     // If errors were passed in, put them in $error_text (with HTML markup)
@@ -118,7 +125,7 @@ function process_form() {
     // if a dish name was submitted, add to the WHERE clause
     // we use quoteSmart() and strtr() to prevent user-enter wildcards from working
     if (strlen(trim($_POST['dish_name']))) {
-        $dish = $db->quoteSmart($_POST['dish_name']);
+        $dish = $db->quote($_POST['dish_name']);
         $dish = strtr($dish, array('_' => '\_', '%' => '\%'));
         $sql .= " AND dish_name LIKE $dish";
     }
@@ -133,8 +140,13 @@ function process_form() {
     }
 
     // Send the query to the database program and get all the rows back
-    $dishes = $db->getAll($sql, array($_POST['min_price'],
-                                      $_POST['max_price']));
+    /*$dishes = $db->getAll($sql, array($_POST['min_price'],
+                                      $_POST['max_price']));*/
+
+//クエリをデータベースプログラムに送り、戻ってくるすべての行を取得
+$sth = $db->prepare($sql);
+$result = $sth->execute(array($_POST['min_price'], $_POST['max_price']));
+$dishes = $result->fetchAll();
 
     if (count($dishes) == 0) {
         print 'No dishes matched.';

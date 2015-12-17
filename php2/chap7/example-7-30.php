@@ -1,19 +1,20 @@
 <?php
-// Load PEAR DB
-require 'DB.php';
-// Load the form helper functions
-require 'formhelpers.php';
 
-// Connect to the database
-$db = DB::connect('mysql://hunter:w)mp3s@db.example.com/restaurant');
-if (DB::isError($db)) { die ("Can't connect: " . $db->getMessage()); }
-// Set up automatic error handling
+// Load the form helper functions
+require '../chap6/formhelpers.php';
+
+require 'MDB2.php';
+$db = MDB2::connect('mysql://kakazu:1234@localhost/restaurant');
+if (MDB2::isError($db)) { die("connection error: " . $db->getMessage()); }
+
+// この後のデータベースエラーに関してはメッセージを出力して抜け出す
 $db->setErrorHandling(PEAR_ERROR_DIE);
+
 
 // The main page logic:
 // - If the form is submitted, validate and then process or redisplay
 // - If it's not submitted, display
-if ($_POST['_submit_check']) {
+if (array_key_exists('_submit_check', $_POST)) {
     // If validate_form() returns errors, pass them to show_form()
     if ($form_errors = validate_form()) {
         show_form($form_errors);
@@ -28,11 +29,14 @@ if ($_POST['_submit_check']) {
 
 function show_form($errors = '') {
     // If the form is submitted, get defaults from submitted parameters
-    if ($_POST['_submit_check']) {
+    if (array_key_exists('_submit_check', $_POST)) {
         $defaults = $_POST;
     } else {
         // Otherwise, set our own defaults: price is $5
-        $defaults = array('price' => '5.00');
+        $defaults = array('price' => '5.00',
+            'dish_name' => '',
+            'is_spicy' => 'no',
+            );
     }
     
     // If errors were passed in, put them in $error_text (with HTML markup)
@@ -81,7 +85,7 @@ function validate_form() {
 
     // price must be a valid floating point number and 
     // more than 0
-    if (floatval($_POST['price'] <= 0) {
+    if (floatval($_POST['price']) <= 0) {
         $errors[] = 'Please enter a valid price.';
     }
 
@@ -93,20 +97,24 @@ function process_form() {
     global $db;
 
     // Get a unique ID for this dish
-    $dish_id = $db->nextID('dishes');
+//    $dish_id = $db->nextID('dishes');
 
     // Set the value of $is_spicy based on the checkbox
-    if ($_POST['is_spicy'] == 'yes') {
+    if (array_key_exists('is_spicy', $_POST) && $_POST['is_spicy'] == 'yes') {
         $is_spicy = 1;
     } else {
         $is_spicy = 0;
     }
 
     // Insert the new dish into the table
-    $db->query('INSERT INTO dishes (dish_id, dish_name, price, is_spicy)
+    /*$db->query('INSERT INTO dishes (dish_id, dish_name, price, is_spicy)
                 VALUES (?,?,?,?)',
                array($dish_id, $_POST['dish_name'], $_POST['price'],
-                     $is_spicy));
+                     $is_spicy));*/
+
+//新しい料理をテーブルに挿入
+$sth = $db->prepare('INSERT INTO dishes (dish_name, price, is_spicy) values(?,?,?)');
+$sth->execute(array($_POST['dish_name'], $_POST['price'], $is_spicy));
 
     // Tell the user that we added a dish.
     print 'Added ' . htmlentities($_POST['dish_name']) . 

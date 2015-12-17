@@ -1,6 +1,7 @@
-require 'DB.php';
-$db = DB::connect('mysql://hunter:w)mp3s@db.example.com/restaurant');
-if (DB::isError($db)) { die("Can't connect: " . $db->getMessage()); }
+<?php
+require 'MDB2.php';
+$db = MDB2::connect('mysql://kakazu:1234@localhost/restaurant');
+if (MDB2::isError($db)) { die("connection error: " . $db->getMessage()); }
 
 // print a message and quit on future database errors
 $db->setErrorHandling(PEAR_ERROR_DIE);
