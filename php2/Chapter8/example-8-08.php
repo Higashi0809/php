@@ -1,1 +1,0 @@
-setcookie('short-userid','');

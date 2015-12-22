@@ -1,1 +1,0 @@
-setcookie('userid','ralph');
